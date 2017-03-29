@@ -11,23 +11,21 @@ var desktopDir = "C:/Users/Henry Heffernan/Photoshop Exports";
 
 getValidAnimations(docLayers, function(splitAnimations, regularAnimations) {
     generateWinGUI(splitAnimations, regularAnimations, function(returnString) {
-        var toExport = [];
         var res =
             "dialog { alignChildren: 'fill', \
               info: Panel {orientation: 'column', alignChildren:'Right', \
-                  text:'Avalible Animations for Export', \
+                  text:'Available Animations for Export', \
                   animations: Group {orientation: 'column', alignment:'center', \ " +
             returnString +
             "} \
               } \
               buttons: Group {orientation: 'row', alignment: 'center', \
-                  okBtn: Button {text: 'Export' },\
+                  exportBtn: Button {text: 'Export' },\
                   cancelBtn: Button {text: 'Cancel', properties: {name:'cancel'} },\
               } \
           }";
         win = new Window(res);
-        win.buttons.okBtn.onClick = function() {
-            var toExport
+        win.buttons.exportBtn.onClick = function() {
             for (var i = 0; i < win.info.animations.children.length; i++) {
                 if (win.info.animations.children[i].value == true) {
                     var text = win.info.animations.children[i].text
