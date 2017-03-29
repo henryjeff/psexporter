@@ -9,40 +9,67 @@ var laptopDir = "C:/Storage/Programming/Photoshop Scripts/Test Exports";
 //Desktop directory
 var desktopDir = "C:/Users/Henry Heffernan/Photoshop Exports";
 
+var globalDirectory = desktopDir;
+
 getValidAnimations(docLayers, function(splitAnimations, regularAnimations) {
     generateWinGUI(splitAnimations, regularAnimations, function(returnString) {
         var res =
-            "dialog { alignChildren: 'fill', \
-              info: Panel {orientation: 'column', alignChildren:'Right', \
+            "dialog { alignChildren: 'fill', text: 'Export', \
+              info: Panel {orientation: 'column', alignment:'center', margins: 20, \
                   text:'Available Animations for Export', \
                   animations: Group {orientation: 'column', alignment:'center', \ " +
-            returnString +
-            "} \
+                  returnString +
+                  "} \
               } \
               buttons: Group {orientation: 'row', alignment: 'center', \
                   exportBtn: Button {text: 'Export' },\
                   cancelBtn: Button {text: 'Cancel', properties: {name:'cancel'} },\
+                  directoryBtn: Button {text: 'Directory'} \
+              } \
+              options: Group {orientation: 'column', alignment: 'center',\
+                  cropCanvas: Checkbox { text: 'Crop Canvas'} \
+                  directory: StaticText { text: '" + globalDirectory + "' } \
+                  progress: Progressbar { bounds: [0,0, 220,15] , value: 0}\
+                  currentExport: StaticText { bounds: [320,0, 440,15], text: 'Waiting for Export...', alignment: 'center'}\
               } \
           }";
         win = new Window(res);
         win.buttons.exportBtn.onClick = function() {
+            var count = 0;
+            for (var i = 0; i < win.info.animations.children.length; i++) {
+                if (win.info.animations.children[i].value == true) {
+                    count++;
+                }
+            }
+            var interval = 100 / count;
+            alert(count + " Animations preparing for export...");
             for (var i = 0; i < win.info.animations.children.length; i++) {
                 if (win.info.animations.children[i].value == true) {
                     var text = win.info.animations.children[i].text
                     for (var j = 0; j < regularAnimations.length; j++) {
                         if (text == regularAnimations[j].name) {
-                            exportComplete(docLayers, regularAnimations[j].name, null, desktopDir);
+                            exportComplete(docLayers, regularAnimations[j].name, null, globalDirectory);
+                            win.options.currentExport.text = regularAnimations[j].name + "... done";
+                            win.options.progress.value += interval;
                         }
                     }
                     for (var j = 0; j < splitAnimations.length; j++) {
                         for (var k = 0; k < splitAnimations[j].layerSets.length; k++) {
                             if (text == splitAnimations[j].name + " " + splitAnimations[j].layerSets[k].name) {
-                                exportComplete(docLayers, splitAnimations[j].name, splitAnimations[j].layerSets[k].name, desktopDir);
+                                exportComplete(docLayers, splitAnimations[j].name, splitAnimations[j].layerSets[k].name, globalDirectory);
+                                win.options.currentExport.text = splitAnimations[j].name + " " + splitAnimations[j].layerSets[k].name + "... done";
+                                win.options.progress.value += interval;
                             }
                         }
                     }
                 }
             }
+            alert("Successfully exported all animations");
+        }
+        win.buttons.directoryBtn.onClick = function() {
+            globalDirectory = Folder.selectDialog ("Select Export folder");
+            if(globalDirectory == null) globalDirectory = desktopDir;
+            win.options.directory.text = globalDirectory;
         }
         win.center();
         win.show();
